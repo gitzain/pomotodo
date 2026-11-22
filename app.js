@@ -5,7 +5,7 @@
   const LEGACY_KEY = 'pomotodo-lite-v1';
   const RING_CIRCUMFERENCE = 2 * Math.PI * 116;
   const MAX_GAP_MS = 4 * 60 * 60 * 1000;
-  const MODE_LABELS = { focus: 'Time to focus', short: 'Short break', long: 'Long break' };
+  const MODE_LABELS = { focus: 'Focus', short: 'Short break', long: 'Long break' };
 
   const $ = (id) => document.getElementById(id);
   const THEMES = {
@@ -17,6 +17,7 @@
     card: $('timerCard'),
     time: $('timeDisplay'),
     modeName: $('modeName'),
+    modeSubline: $('modeSubline'),
     ring: $('ringProgress'),
     controls: $('timerControls'),
     startBtn: $('startBtn'),
@@ -329,7 +330,14 @@
     el.time.textContent = overtime
       ? `+${formatTime(Math.floor((elapsed - planned) / 1000))}`
       : formatTime(remaining);
-    el.modeName.textContent = overtime ? 'Overtime — finish when you are done' : MODE_LABELS[t.mode];
+    el.modeName.textContent = overtime ? 'Overtime' : MODE_LABELS[t.mode];
+    el.modeSubline.textContent = overtime
+      ? 'Finish when you are done'
+      : t.running
+        ? `Ends at ${formatClock(Date.now() + remaining * 1000)}`
+        : elapsed > 0
+          ? 'Paused'
+          : `${Math.round(planned / 60000)} min ${t.mode === 'focus' ? 'focus' : t.mode === 'short' ? 'break' : 'long break'}`;
     el.card.dataset.mode = t.mode;
     document.body.dataset.mode = t.mode;
     el.card.classList.toggle('is-overtime', overtime);

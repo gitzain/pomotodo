@@ -181,23 +181,30 @@ h2, h3 { font-family: "Space Grotesk", sans-serif; }
 .timer-body { display: grid; place-items: center; padding: 20px 0 14px; }
 .timer-ring { position: relative; width: 270px; height: 270px; }
 .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring-track, .ring-progress { fill: none; stroke-width: 8; }
-.ring-track { stroke: #f0ecea; }
+.ring-face { fill: url(#ringFaceGradient); stroke: rgba(var(--ink-rgb), .05); stroke-width: 1; }
+.ring-inner { fill: none; stroke: rgba(var(--ink-rgb), .05); stroke-width: 1; }
+.ring-track, .ring-progress { fill: none; stroke-width: 10; }
+.ring-track { stroke: rgba(var(--accent-rgb), .14); }
 .ring-progress {
-  stroke: var(--accent); stroke-linecap: round;
+  stroke: url(#ringAccentGradient); stroke-linecap: round;
   stroke-dasharray: 728.85; stroke-dashoffset: 0;
-  transition: stroke-dashoffset .35s linear, stroke .3s;
+  transition: stroke-dashoffset .35s linear;
 }
-.timer-card[data-mode="short"] .ring-progress { stroke: var(--break); }
-.timer-card[data-mode="long"] .ring-progress { stroke: var(--long-break); }
+.ring-stop-start { stop-color: var(--accent); transition: stop-color .3s; }
+.ring-stop-end { stop-color: var(--accent-dark); transition: stop-color .3s; }
 .timer-card.is-overtime .ring-progress { stroke: var(--accent-dark); }
 .timer-readout { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .time {
-  font-family: "Space Grotesk", sans-serif; font-size: 60px; font-weight: 600;
-  letter-spacing: -2px; font-variant-numeric: tabular-nums; line-height: 1;
+  font-family: "Space Grotesk", sans-serif; font-size: 62px; font-weight: 600;
+  letter-spacing: -2.5px; font-variant-numeric: tabular-nums; line-height: 1;
 }
 .timer-card.is-overtime .time { color: var(--accent-dark); }
-.mode-name { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.timer-card.is-overtime .mode-name { color: #b3692b; }
+.mode-name {
+  margin-bottom: 7px; font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--muted);
+}
+.mode-subline { margin-top: 9px; font-size: 12px; color: var(--muted); min-height: 15px; }
 .timer-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 2px; }
 .timer-controls[hidden] { display: none; }
 .btn[hidden] { display: none; }
