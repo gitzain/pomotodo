@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <!-- Bump ?v= when styles.css or app.js changes: python's http.server has no Cache-Control. -->
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
   <div class="app">
@@ -123,30 +123,38 @@
       <h2 id="settingsTitle">Settings</h2>
       <p class="modal-subtitle">Make the timer work for you.</p>
       <form id="settingsForm">
-        <div class="setting-row">
-          <label for="dailyGoal">Daily pomodoro goal <span>resets at midnight</span></label>
-          <input id="dailyGoal" type="number" min="1" max="24" required />
+        <div class="settings-group">
+          <div class="settings-group-title">Timer</div>
+          <div class="setting-row">
+            <label for="dailyGoal">Daily pomodoro goal <span>resets at midnight</span></label>
+            <input id="dailyGoal" type="number" min="1" max="24" required />
+          </div>
+          <div class="setting-row">
+            <label for="focusMin">Focus length <span>minutes</span></label>
+            <input id="focusMin" type="number" min="1" max="180" required />
+          </div>
+          <div class="setting-row">
+            <label for="shortMin">Short break <span>minutes</span></label>
+            <input id="shortMin" type="number" min="1" max="60" required />
+          </div>
+          <div class="setting-row">
+            <label for="longMin">Long break <span>minutes</span></label>
+            <input id="longMin" type="number" min="1" max="60" required />
+          </div>
         </div>
-        <div class="setting-row">
-          <label for="focusMin">Focus length <span>minutes</span></label>
-          <input id="focusMin" type="number" min="1" max="180" required />
+
+        <div class="settings-group">
+          <div class="settings-group-title">Notifications</div>
+          <div class="setting-row">
+            <label for="soundToggle">Completion sound</label>
+            <input id="soundToggle" type="checkbox" />
+          </div>
+          <div class="setting-row">
+            <label for="notifyToggle">Desktop notifications</label>
+            <input id="notifyToggle" type="checkbox" />
+          </div>
         </div>
-        <div class="setting-row">
-          <label for="shortMin">Short break <span>minutes</span></label>
-          <input id="shortMin" type="number" min="1" max="60" required />
-        </div>
-        <div class="setting-row">
-          <label for="longMin">Long break <span>minutes</span></label>
-          <input id="longMin" type="number" min="1" max="60" required />
-        </div>
-        <div class="setting-row">
-          <label for="soundToggle">Completion sound</label>
-          <input id="soundToggle" type="checkbox" />
-        </div>
-        <div class="setting-row">
-          <label for="notifyToggle">Desktop notifications</label>
-          <input id="notifyToggle" type="checkbox" />
-        </div>
+
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" id="closeSettingsBtn">Cancel</button>
           <button type="submit" class="btn btn-primary">Save settings</button>
@@ -157,6 +165,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
