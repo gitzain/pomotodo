@@ -23,8 +23,17 @@ All data lives in your browser's `localStorage` and stays on your machine.
 
 Today's progress appears as a slim strip above the timer: filled dots are completed pomodoros, the ringed dot is the current one, and a slightly wider gap marks the long break. A `+N` badge appears when you exceed your goal. The timer ring shows time remaining, with the mode above and the end time below while running. Use the settings icon (top right) to change the daily goal, timer durations, long-break interval, colors for pomodoros and breaks, sound, notifications, and to export/import a backup of your data.
 
+## Testing
+
+Unit tests run with Node's built-in test runner, with no npm dependencies, and are checked on every push and pull request via GitHub Actions. See [TESTING.md](TESTING.md).
+
+```bash
+npm test
+```
+
 ## Files
 
 - `index.html` — structure and the three views
 - `styles.css` — theme tokens and responsive layout
-- `app.js` — timer, session records, stats, and persistence
+- `core.js` — pure logic shared by the app and tests
+- `app.js` — UI, session records, stats, and persistence

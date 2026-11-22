@@ -1,0 +1,9 @@
+{
+  "name": "pomotodo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-first Pomodoro timer — no dependencies, no build step",
+  "scripts": {
+    "test": "node --test"
+  }
+}
