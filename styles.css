@@ -158,9 +158,7 @@ h2, h3 { font-family: "Space Grotesk", sans-serif; }
 }
 .progress-dot.done { background: var(--theme-accent); border-color: var(--theme-accent); }
 .progress-dot.current {
-  --p: 0;
   border-color: var(--theme-accent);
-  background: conic-gradient(var(--theme-accent) calc(var(--p) * 1%), #fff 0);
   box-shadow: 0 0 0 3px var(--theme-accent-soft);
 }
 .progress-break {
@@ -170,17 +168,8 @@ h2, h3 { font-family: "Space Grotesk", sans-serif; }
 .progress-break.done { background: rgba(var(--theme-accent-rgb), .4); }
 .progress-break.long { flex-basis: 8px; width: 8px; height: 8px; }
 .progress-break.cycle-gap { margin-left: 4px; }
-body.timer-running .progress-dot.current { animation: pulse 1.8s ease-in-out infinite; }
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 3px var(--theme-accent-soft); }
-  50% { box-shadow: 0 0 0 6px rgba(var(--theme-accent-rgb), .12); }
-}
-.next-break {
-  font-size: 11px; font-weight: 600; color: var(--muted);
-  background: #fff; border: 1px solid var(--line);
-  border-radius: 999px; padding: 4px 10px; white-space: nowrap;
-}
-.next-break.is-break { color: var(--accent-dark); background: var(--accent-soft); border-color: rgba(var(--accent-rgb), .18); }
+
+
 
 /* ---------- Timer ---------- */
 .timer-body { display: grid; place-items: center; padding: 20px 0 14px; }

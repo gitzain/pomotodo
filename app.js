@@ -28,7 +28,7 @@
     goalCount: $('goalCount'),
     extraCount: $('extraCount'),
     timeline: $('timeline'),
-    phaseLabel: $('phaseLabel'),
+
     captureCard: $('captureCard'),
     captureMeta: $('captureMeta'),
     captureForm: $('captureForm'),
@@ -358,12 +358,6 @@
       el.startLabel.textContent = t.mode === 'focus' ? 'Start focus' : 'Start break';
       el.startIcon.textContent = '▶';
     }
-    const currentDot = el.timeline.querySelector('.progress-dot.current');
-    if (currentDot) {
-      const p = (t.mode === 'focus' && !overtime) ? Math.min(100, (elapsed / planned) * 100) : (overtime ? 100 : 0);
-      currentDot.style.setProperty('--p', String(p));
-    }
-
     document.body.classList.toggle('timer-running', t.running);
     document.title = t.running
       ? `${el.time.textContent} · ${overtime ? 'Overtime' : t.mode === 'focus' ? 'Focus' : 'Break'} — PomoTodo`
@@ -539,8 +533,16 @@
     const completed = todayFocus().length;
     el.doneCount.textContent = completed;
     el.goalCount.textContent = target;
-    el.extraCount.textContent = completed > target ? `+${completed - target}` : '';
-    el.extraCount.hidden = completed <= target;
+    if (completed > target) {
+      el.extraCount.textContent = `+${completed - target}`;
+      el.extraCount.hidden = false;
+    } else if (completed === target && target > 0) {
+      el.extraCount.textContent = 'Goal met';
+      el.extraCount.hidden = false;
+    } else {
+      el.extraCount.textContent = '';
+      el.extraCount.hidden = true;
+    }
 
     el.timeline.innerHTML = '';
     for (let i = 1; i <= target; i++) {
@@ -550,11 +552,6 @@
       const dot = document.createElement('span');
       dot.className = `progress-dot ${dotState}`;
       dot.title = `Pomodoro ${i}${dotState === 'done' ? ' — completed today' : ''}`;
-      if (dotState === 'current') {
-        const elapsed = elapsedNow();
-        const p = Math.min(100, (elapsed / plannedMs()) * 100);
-        dot.style.setProperty('--p', String(p));
-      }
       el.timeline.appendChild(dot);
 
       if (i < target) {
@@ -568,17 +565,7 @@
       }
     }
 
-    if (state.timer.mode === 'focus') {
-      if (completed >= target) {
-        el.phaseLabel.textContent = 'Goal reached — keep going';
-      } else {
-        el.phaseLabel.textContent = `${nextBreakType(completed + 1) === 'long' ? 'Long' : 'Short'} break next`;
-      }
-      el.phaseLabel.classList.remove('is-break');
-    } else {
-      el.phaseLabel.textContent = state.timer.mode === 'long' ? 'On a long break' : 'On a short break';
-      el.phaseLabel.classList.add('is-break');
-    }
+
   }
 
   /* ---------------- Session log ---------------- */
