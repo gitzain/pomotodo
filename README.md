@@ -21,10 +21,10 @@ All data lives in your browser's `localStorage` and stays on your machine.
 
 **Stats** — derived entirely from logged sessions: today's pomodoros vs goal, focus time, day streak, a 12-week consistency heatmap, a 7-day bar chart, best focus window, on-time rate, break adherence, and personal bests.
 
-Today's progress appears as a slim strip above the timer: filled dots are completed pomodoros, the ringed dot is the current one, and a slightly wider gap after every fourth marks the long break. The next break is shown in plain text, with a `+N` badge if you exceed your goal. Use the settings icon (top right) to change the daily goal, timer durations, sound, and notifications.
+Today's progress appears as a slim strip above the timer: filled dots are completed pomodoros, the ringed dot is the current one, and a slightly wider gap after every fourth marks the long break. The next break is shown in plain text, with a `+N` badge if you exceed your goal. Use the settings icon (top right) to change the daily goal, timer durations, theme, sound, and notifications.
 
 ## Files
 
 - `index.html` — structure and the three views
-- `styles.css` — red theme and responsive layout
+- `styles.css` — theme tokens and responsive layout
 - `app.js` — timer, session records, stats, and persistence

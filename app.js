@@ -8,6 +8,11 @@
   const MODE_LABELS = { focus: 'Time to focus', short: 'Short break', long: 'Long break' };
 
   const $ = (id) => document.getElementById(id);
+  const THEMES = {
+    red: { accent: '#c94b43' },
+    green: { accent: '#5f9465' },
+    blue: { accent: '#4f84b7' }
+  };
   const el = {
     card: $('timerCard'),
     time: $('timeDisplay'),
@@ -44,6 +49,8 @@
     longMin: $('longMin'),
     soundToggle: $('soundToggle'),
     notifyToggle: $('notifyToggle'),
+    themeOptions: Array.from(document.querySelectorAll('.theme-option')),
+    themeColorMeta: document.querySelector('meta[name="theme-color"]'),
     toast: $('toast'),
     savedIndicator: $('savedIndicator')
   };
@@ -64,7 +71,7 @@
 
   function defaults() {
     return {
-      settings: { focus: 25, short: 5, long: 15, goal: 8, sound: true, notify: false },
+      settings: { focus: 25, short: 5, long: 15, goal: 8, sound: true, notify: false, theme: 'red' },
       timer: freshTimer(),
       sessions: [],
       breaks: []
@@ -100,8 +107,10 @@
       const base = defaults();
       const timer = raw.timer && typeof raw.timer === 'object' ? raw.timer : {};
       const validMode = ['focus', 'short', 'long'].includes(timer.mode) ? timer.mode : 'focus';
+      const merged = { ...base.settings, ...(raw.settings || {}) };
+      merged.theme = THEMES[merged.theme] ? merged.theme : base.settings.theme;
       return {
-        settings: { ...base.settings, ...(raw.settings || {}) },
+        settings: merged,
         timer: {
           mode: validMode,
           running: !!timer.running,
@@ -171,6 +180,11 @@
     el.toast.hidden = false;
     clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => { el.toast.hidden = true; }, 2800);
+  }
+  function applyTheme(theme) {
+    const t = THEMES[theme] ? theme : 'red';
+    document.documentElement.dataset.theme = t;
+    if (el.themeColorMeta) el.themeColorMeta.content = THEMES[t].accent;
   }
   function nextBreakType(pomodoroNumber) { return pomodoroNumber % 4 === 0 ? 'long' : 'short'; }
 
@@ -645,6 +659,11 @@
     el.longMin.value = state.settings.long;
     el.soundToggle.checked = state.settings.sound;
     el.notifyToggle.checked = state.settings.notify;
+    el.themeOptions.forEach((btn) => {
+      const active = btn.dataset.theme === state.settings.theme;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
     el.settingsModal.hidden = false;
     el.dailyGoal.focus();
   }
@@ -665,17 +684,27 @@
 
   el.settingsBtn.addEventListener('click', openSettings);
   el.closeSettingsBtn.addEventListener('click', () => { el.settingsModal.hidden = true; });
+  el.themeOptions.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      el.themeOptions.forEach((b) => { b.classList.remove('is-active'); b.setAttribute('aria-pressed', 'false'); });
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed', 'true');
+    });
+  });
   el.settingsForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    const selectedTheme = el.themeOptions.find((b) => b.classList.contains('is-active'))?.dataset.theme;
     state.settings.goal = clamp(parseInt(el.dailyGoal.value, 10) || 8, 1, 24);
     state.settings.focus = clamp(parseInt(el.focusMin.value, 10) || 25, 1, 180);
     state.settings.short = clamp(parseInt(el.shortMin.value, 10) || 5, 1, 60);
     state.settings.long = clamp(parseInt(el.longMin.value, 10) || 15, 1, 60);
     state.settings.sound = el.soundToggle.checked;
     state.settings.notify = el.notifyToggle.checked;
+    state.settings.theme = THEMES[selectedTheme] ? selectedTheme : state.settings.theme;
     if (state.settings.notify && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});
     }
+    applyTheme(state.settings.theme);
     el.settingsModal.hidden = true;
     saveState();
     renderTimer();
@@ -702,6 +731,7 @@
   /* ---------------- Boot ---------------- */
 
   function boot() {
+    applyTheme(state.settings.theme);
     const t = state.timer;
     if (t.running && t.accumulatedAt) {
       const gap = Date.now() - t.accumulatedAt;

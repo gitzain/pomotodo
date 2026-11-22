@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <!-- Bump ?v= when styles.css or app.js changes: python's http.server has no Cache-Control. -->
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
   <div class="app">
@@ -144,6 +144,24 @@
         </div>
 
         <div class="settings-group">
+          <div class="settings-group-title">Appearance</div>
+          <div class="theme-picker" role="group" aria-label="Color theme">
+            <button type="button" class="theme-option is-active" data-theme="red" aria-pressed="true" style="--swatch:#c94b43">
+              <span class="theme-swatch"></span>
+              <span class="theme-name">Red</span>
+            </button>
+            <button type="button" class="theme-option" data-theme="green" aria-pressed="false" style="--swatch:#5f9465">
+              <span class="theme-swatch"></span>
+              <span class="theme-name">Green</span>
+            </button>
+            <button type="button" class="theme-option" data-theme="blue" aria-pressed="false" style="--swatch:#4f84b7">
+              <span class="theme-swatch"></span>
+              <span class="theme-name">Blue</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-group">
           <div class="settings-group-title">Notifications</div>
           <div class="setting-row">
             <label for="soundToggle">Completion sound</label>
@@ -165,6 +183,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
