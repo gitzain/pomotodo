@@ -327,6 +327,7 @@
       : formatTime(remaining);
     el.modeName.textContent = overtime ? 'Overtime — finish when you are done' : MODE_LABELS[t.mode];
     el.card.dataset.mode = t.mode;
+    document.body.dataset.mode = t.mode;
     el.card.classList.toggle('is-overtime', overtime);
 
     const fraction = overtime ? 1 : clamp(1 - elapsed / planned, 0, 1);
@@ -357,6 +358,12 @@
       el.startLabel.textContent = t.mode === 'focus' ? 'Start focus' : 'Start break';
       el.startIcon.textContent = '▶';
     }
+    const currentDot = el.timeline.querySelector('.progress-dot.current');
+    if (currentDot) {
+      const p = (t.mode === 'focus' && !overtime) ? Math.min(100, (elapsed / planned) * 100) : (overtime ? 100 : 0);
+      currentDot.style.setProperty('--p', String(p));
+    }
+
     document.body.classList.toggle('timer-running', t.running);
     document.title = t.running
       ? `${el.time.textContent} · ${overtime ? 'Overtime' : t.mode === 'focus' ? 'Focus' : 'Break'} — PomoTodo`
@@ -541,9 +548,24 @@
       if (i <= completed) dotState = 'done';
       else if (i === completed + 1 && state.timer.mode === 'focus') dotState = 'current';
       const dot = document.createElement('span');
-      dot.className = `progress-dot ${dotState}${i > 1 && (i - 1) % 4 === 0 ? ' cycle-gap' : ''}`;
+      dot.className = `progress-dot ${dotState}`;
       dot.title = `Pomodoro ${i}${dotState === 'done' ? ' — completed today' : ''}`;
+      if (dotState === 'current') {
+        const elapsed = elapsedNow();
+        const p = Math.min(100, (elapsed / plannedMs()) * 100);
+        dot.style.setProperty('--p', String(p));
+      }
       el.timeline.appendChild(dot);
+
+      if (i < target) {
+        const type = nextBreakType(i);
+        const done = i <= completed;
+        const br = document.createElement('span');
+        br.className = `progress-break ${type}${done ? ' done' : ''}${i % 4 === 0 ? ' cycle-gap' : ''}`;
+        br.title = `${type === 'long' ? 'Long' : 'Short'} break`;
+        br.setAttribute('aria-hidden', 'true');
+        el.timeline.appendChild(br);
+      }
     }
 
     if (state.timer.mode === 'focus') {
@@ -552,8 +574,10 @@
       } else {
         el.phaseLabel.textContent = `${nextBreakType(completed + 1) === 'long' ? 'Long' : 'Short'} break next`;
       }
+      el.phaseLabel.classList.remove('is-break');
     } else {
       el.phaseLabel.textContent = state.timer.mode === 'long' ? 'On a long break' : 'On a short break';
+      el.phaseLabel.classList.add('is-break');
     }
   }
 
