@@ -47,6 +47,7 @@
     focusMin: $('focusMin'),
     shortMin: $('shortMin'),
     longMin: $('longMin'),
+    longEvery: $('longEvery'),
     soundToggle: $('soundToggle'),
     notifyToggle: $('notifyToggle'),
     themeOptions: Array.from(document.querySelectorAll('.theme-option')),
@@ -74,7 +75,7 @@
 
   function defaults() {
     return {
-      settings: { focus: 25, short: 5, long: 15, goal: 8, sound: true, notify: false, theme: 'red' },
+      settings: { focus: 25, short: 5, long: 15, longEvery: 4, goal: 8, sound: true, notify: false, theme: 'red' },
       timer: freshTimer(),
       sessions: [],
       breaks: []
@@ -112,6 +113,7 @@
       const validMode = ['focus', 'short', 'long'].includes(timer.mode) ? timer.mode : 'focus';
       const merged = { ...base.settings, ...(raw.settings || {}) };
       merged.theme = THEMES[merged.theme] ? merged.theme : base.settings.theme;
+      merged.longEvery = clamp(parseInt(merged.longEvery, 10) || base.settings.longEvery, 2, 12);
       return {
         settings: merged,
         timer: {
@@ -242,6 +244,7 @@
     mergedSettings.focus = clamp(parseInt(mergedSettings.focus, 10) || base.settings.focus, 1, 180);
     mergedSettings.short = clamp(parseInt(mergedSettings.short, 10) || base.settings.short, 1, 60);
     mergedSettings.long = clamp(parseInt(mergedSettings.long, 10) || base.settings.long, 1, 60);
+    mergedSettings.longEvery = clamp(parseInt(mergedSettings.longEvery, 10) || base.settings.longEvery, 2, 12);
     mergedSettings.sound = !!mergedSettings.sound;
     mergedSettings.notify = !!mergedSettings.notify;
 
@@ -299,7 +302,8 @@
     toast(`Imported ${state.sessions.length} session${state.sessions.length === 1 ? '' : 's'}`);
   }
 
-  function nextBreakType(pomodoroNumber) { return pomodoroNumber % 4 === 0 ? 'long' : 'short'; }
+  const longEvery = () => clamp(parseInt(state.settings.longEvery, 10) || 4, 2, 12);
+  function nextBreakType(pomodoroNumber) { return pomodoroNumber % longEvery() === 0 ? 'long' : 'short'; }
 
   /* ---------------- Timer ---------------- */
 
@@ -558,7 +562,7 @@
         const type = nextBreakType(i);
         const done = i <= completed;
         const br = document.createElement('span');
-        br.className = `progress-break ${type}${done ? ' done' : ''}${i % 4 === 0 ? ' cycle-gap' : ''}`;
+        br.className = `progress-break ${type}${done ? ' done' : ''}${i % longEvery() === 0 ? ' cycle-gap' : ''}`;
         br.title = `${type === 'long' ? 'Long' : 'Short'} break`;
         br.setAttribute('aria-hidden', 'true');
         el.timeline.appendChild(br);
@@ -785,6 +789,7 @@
       focus: clamp(parseInt(el.focusMin.value, 10) || 25, 1, 180),
       short: clamp(parseInt(el.shortMin.value, 10) || 5, 1, 60),
       long: clamp(parseInt(el.longMin.value, 10) || 15, 1, 60),
+      longEvery: clamp(parseInt(el.longEvery.value, 10) || 4, 2, 12),
       sound: !!el.soundToggle.checked,
       notify: !!el.notifyToggle.checked,
       theme: THEMES[selectedTheme] ? selectedTheme : state.settings.theme
@@ -795,7 +800,7 @@
     const v = settingsValues();
     const s = state.settings;
     return v.goal !== s.goal || v.focus !== s.focus || v.short !== s.short || v.long !== s.long
-      || v.sound !== s.sound || v.notify !== s.notify || v.theme !== s.theme;
+      || v.longEvery !== s.longEvery || v.sound !== s.sound || v.notify !== s.notify || v.theme !== s.theme;
   }
 
   function openSettings() {
@@ -804,6 +809,7 @@
     el.focusMin.value = state.settings.focus;
     el.shortMin.value = state.settings.short;
     el.longMin.value = state.settings.long;
+    el.longEvery.value = state.settings.longEvery;
     el.soundToggle.checked = state.settings.sound;
     el.notifyToggle.checked = state.settings.notify;
     el.themeOptions.forEach((btn) => {

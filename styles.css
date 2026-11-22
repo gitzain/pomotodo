@@ -16,6 +16,10 @@
   --break-soft: #eaf3f7;
   --long-break: #9a86c4;
   --long-break-soft: #f1eefa;
+  --break-short: #6aa9c4;
+  --break-short-rgb: 106, 169, 196;
+  --break-long: #9a86c4;
+  --break-long-rgb: 154, 134, 196;
   --shadow: 0 1px 2px rgba(var(--ink-rgb), .04), 0 10px 30px rgba(var(--ink-rgb), .06);
   --radius: 18px;
 }
@@ -165,9 +169,11 @@ h2, h3 { font-family: "Space Grotesk", sans-serif; }
   flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%;
   background: #ddd5d1; opacity: .9;
 }
-.progress-break.done { background: rgba(var(--theme-accent-rgb), .4); }
 .progress-break.long { flex-basis: 8px; width: 8px; height: 8px; }
-.progress-break.cycle-gap { margin-left: 4px; }
+.progress-break.done { opacity: 1; }
+.progress-break.short.done { background: var(--break-short); }
+.progress-break.long.done { background: var(--break-short); }
+.progress-break.cycle-gap { margin: 0 4px; }
 
 
 
