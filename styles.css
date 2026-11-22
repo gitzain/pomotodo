@@ -176,6 +176,7 @@ body.timer-running .progress-dot.current { animation: pulse 1.8s ease-in-out inf
 .btn-primary:hover { background: var(--accent-dark); }
 .btn-ghost { background: #f6f2f0; color: var(--muted); min-width: 82px; }
 .btn-ghost:hover { background: #efe9e6; color: var(--ink); }
+.btn-small { min-width: 0; padding: 8px 12px; font-size: 12px; }
 body.timer-running .timer-card { border-color: rgba(var(--accent-rgb), .4); }
 
 /* ---------- Capture card ---------- */

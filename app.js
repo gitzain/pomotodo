@@ -51,6 +51,9 @@
     notifyToggle: $('notifyToggle'),
     themeOptions: Array.from(document.querySelectorAll('.theme-option')),
     themeColorMeta: document.querySelector('meta[name="theme-color"]'),
+    exportBtn: $('exportBtn'),
+    importBtn: $('importBtn'),
+    importInput: $('importInput'),
     toast: $('toast'),
     savedIndicator: $('savedIndicator')
   };
@@ -186,6 +189,116 @@
     document.documentElement.dataset.theme = t;
     if (el.themeColorMeta) el.themeColorMeta.content = THEMES[t].accent;
   }
+
+  async function exportData() {
+    syncElapsed();
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: {
+        settings: { ...state.settings },
+        timer: { ...state.timer },
+        sessions: [...state.sessions],
+        breaks: [...state.breaks]
+      }
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const name = `pomotodo-backup-${localDateKey()}.json`;
+    try {
+      if (window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: name,
+          types: [{ description: 'JSON backup', accept: { 'application/json': ['.json'] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        toast('Backup exported');
+        return;
+      }
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      // Fall back to browser download if the file picker fails.
+    }
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('Backup exported');
+  }
+
+  function normalizeImported(raw) {
+    const src = raw && typeof raw === 'object' && raw.data && typeof raw.data === 'object' ? raw.data : raw;
+    if (!src || typeof src !== 'object') throw new Error('Invalid backup file');
+    const base = defaults();
+    const mergedSettings = { ...base.settings, ...((src.settings && typeof src.settings === 'object') ? src.settings : {}) };
+    mergedSettings.theme = THEMES[mergedSettings.theme] ? mergedSettings.theme : base.settings.theme;
+    mergedSettings.goal = clamp(parseInt(mergedSettings.goal, 10) || base.settings.goal, 1, 24);
+    mergedSettings.focus = clamp(parseInt(mergedSettings.focus, 10) || base.settings.focus, 1, 180);
+    mergedSettings.short = clamp(parseInt(mergedSettings.short, 10) || base.settings.short, 1, 60);
+    mergedSettings.long = clamp(parseInt(mergedSettings.long, 10) || base.settings.long, 1, 60);
+    mergedSettings.sound = !!mergedSettings.sound;
+    mergedSettings.notify = !!mergedSettings.notify;
+
+    const cleanSession = (s) => {
+      if (!s || typeof s !== 'object') return null;
+      const endedAt = Number(s.endedAt);
+      const startedAt = Number(s.startedAt);
+      if (!Number.isFinite(endedAt) || !Number.isFinite(startedAt)) return null;
+      const plannedMinutes = Math.max(1, Number(s.plannedMinutes) || mergedSettings.focus);
+      const actualMinutes = Math.max(1, Number(s.actualMinutes) || plannedMinutes);
+      return {
+        id: typeof s.id === 'string' && s.id ? s.id : uid(),
+        label: typeof s.label === 'string' && s.label.trim() ? s.label.trim().slice(0, 120) : 'Untitled session',
+        startedAt, endedAt,
+        plannedMinutes, actualMinutes,
+        overtimeMinutes: Math.max(0, Number(s.overtimeMinutes) || 0),
+        type: 'focus',
+        day: typeof s.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.day) ? s.day : keyFromTs(endedAt)
+      };
+    };
+    const cleanBreak = (b) => {
+      if (!b || typeof b !== 'object') return null;
+      const endedAt = Number(b.endedAt);
+      const startedAt = Number(b.startedAt);
+      if (!Number.isFinite(endedAt) || !Number.isFinite(startedAt)) return null;
+      const type = b.type === 'long' ? 'long' : 'short';
+      return {
+        id: typeof b.id === 'string' && b.id ? b.id : uid(),
+        type, startedAt, endedAt,
+        actualMinutes: Math.max(1, Number(b.actualMinutes) || 1)
+      };
+    };
+
+    const sessions = Array.isArray(src.sessions) ? src.sessions.map(cleanSession).filter(Boolean) : [];
+    const breaks = Array.isArray(src.breaks) ? src.breaks.map(cleanBreak).filter(Boolean) : [];
+    return { ...base, settings: mergedSettings, sessions, breaks, timer: freshTimer() };
+  }
+
+  async function importData(file) {
+    const text = await file.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch { throw new Error('That file is not valid JSON'); }
+    const next = normalizeImported(parsed);
+    state.settings = next.settings;
+    state.timer = next.timer;
+    state.sessions = next.sessions;
+    state.breaks = next.breaks;
+    pendingSessionId = null;
+    applyTheme(state.settings.theme);
+    saveState();
+    renderTimer();
+    renderProgress();
+    renderLog();
+    renderStats();
+    toast(`Imported ${state.sessions.length} session${state.sessions.length === 1 ? '' : 's'}`);
+  }
+
   function nextBreakType(pomodoroNumber) { return pomodoroNumber % 4 === 0 ? 'long' : 'short'; }
 
   /* ---------------- Timer ---------------- */
@@ -684,6 +797,19 @@
 
   el.settingsBtn.addEventListener('click', openSettings);
   el.closeSettingsBtn.addEventListener('click', () => { el.settingsModal.hidden = true; });
+  el.exportBtn.addEventListener('click', exportData);
+  el.importBtn.addEventListener('click', () => el.importInput.click());
+  el.importInput.addEventListener('change', async () => {
+    const file = el.importInput.files && el.importInput.files[0];
+    el.importInput.value = '';
+    if (!file) return;
+    if (!confirm('Importing a backup will replace your current sessions, breaks, and settings on this device. Continue?')) return;
+    try {
+      await importData(file);
+    } catch (err) {
+      toast(err && err.message ? err.message : 'Could not import backup');
+    }
+  });
   el.themeOptions.forEach((btn) => {
     btn.addEventListener('click', () => {
       el.themeOptions.forEach((b) => { b.classList.remove('is-active'); b.setAttribute('aria-pressed', 'false'); });
