@@ -6,13 +6,14 @@
   const RING_CIRCUMFERENCE = 2 * Math.PI * 116;
   const MAX_GAP_MS = 4 * 60 * 60 * 1000;
   const MODE_LABELS = { focus: 'Focus', short: 'Short break', long: 'Long break' };
+  const DEFAULT_COLORS = { focusColor: '#c94b43', shortColor: '#6aa9c4', longColor: '#9a86c4' };
+  const LEGACY_THEMES = {
+    red: { ...DEFAULT_COLORS },
+    green: { ...DEFAULT_COLORS, focusColor: '#5f9465' },
+    blue: { ...DEFAULT_COLORS, focusColor: '#4f84b7' }
+  };
 
   const $ = (id) => document.getElementById(id);
-  const THEMES = {
-    red: { accent: '#c94b43' },
-    green: { accent: '#5f9465' },
-    blue: { accent: '#4f84b7' }
-  };
   const el = {
     card: $('timerCard'),
     time: $('timeDisplay'),
@@ -51,7 +52,9 @@
     longEvery: $('longEvery'),
     soundToggle: $('soundToggle'),
     notifyToggle: $('notifyToggle'),
-    themeOptions: Array.from(document.querySelectorAll('.theme-option')),
+    focusColor: $('focusColor'),
+    shortColor: $('shortColor'),
+    longColor: $('longColor'),
     themeColorMeta: document.querySelector('meta[name="theme-color"]'),
     exportBtn: $('exportBtn'),
     importBtn: $('importBtn'),
@@ -69,6 +72,49 @@
   const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
   const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const normalizeHex = (value, fallback) => {
+    const v = String(value || '').trim();
+    return /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : fallback;
+  };
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    let h = 0;
+    let s = 0;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h /= 6;
+    }
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  }
+  function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, '0');
+    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+  }
+  function deriveColors(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    const { h, s, l } = rgbToHsl(r, g, b);
+    return {
+      accent: hex,
+      dark: hslToHex(h, Math.max(0, s - 4), clamp(l - 11, 18, 48)),
+      soft: hslToHex(h, Math.min(s, 70), 94),
+      rgb: `${r}, ${g}, ${b}`
+    };
+  }
 
   function freshTimer(mode = 'focus') {
     return { mode, running: false, elapsedMs: 0, accumulatedAt: null, startedAt: null, milestoneNotified: false };
@@ -76,11 +122,23 @@
 
   function defaults() {
     return {
-      settings: { focus: 25, short: 5, long: 15, longEvery: 4, goal: 8, sound: true, notify: false, theme: 'red' },
+      settings: { focus: 25, short: 5, long: 15, longEvery: 4, goal: 8, sound: true, notify: false, ...DEFAULT_COLORS },
       timer: freshTimer(),
       sessions: [],
       breaks: []
     };
+  }
+
+  function mergeSettings(baseSettings, rawSettings) {
+    const raw = rawSettings && typeof rawSettings === 'object' ? rawSettings : {};
+    const legacy = LEGACY_THEMES[raw.theme];
+    const merged = { ...baseSettings, ...(legacy || {}), ...raw };
+    merged.longEvery = clamp(parseInt(merged.longEvery, 10) || baseSettings.longEvery, 2, 12);
+    merged.focusColor = normalizeHex(merged.focusColor, baseSettings.focusColor);
+    merged.shortColor = normalizeHex(merged.shortColor, baseSettings.shortColor);
+    merged.longColor = normalizeHex(merged.longColor, baseSettings.longColor);
+    delete merged.theme;
+    return merged;
   }
 
   function migrateLegacy() {
@@ -90,7 +148,7 @@
       const base = defaults();
       return {
         ...base,
-        settings: { ...base.settings, ...(old.settings || {}) },
+        settings: mergeSettings(base.settings, old.settings),
         sessions: old.records.map((r) => {
           const ended = Number(r.completedAt) || Date.now();
           const minutes = Math.max(1, Number(r.minutes) || 25);
@@ -112,9 +170,7 @@
       const base = defaults();
       const timer = raw.timer && typeof raw.timer === 'object' ? raw.timer : {};
       const validMode = ['focus', 'short', 'long'].includes(timer.mode) ? timer.mode : 'focus';
-      const merged = { ...base.settings, ...(raw.settings || {}) };
-      merged.theme = THEMES[merged.theme] ? merged.theme : base.settings.theme;
-      merged.longEvery = clamp(parseInt(merged.longEvery, 10) || base.settings.longEvery, 2, 12);
+      const merged = mergeSettings(base.settings, raw.settings);
       return {
         settings: merged,
         timer: {
@@ -187,10 +243,32 @@
     clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => { el.toast.hidden = true; }, 2800);
   }
-  function applyTheme(theme) {
-    const t = THEMES[theme] ? theme : 'red';
-    document.documentElement.dataset.theme = t;
-    if (el.themeColorMeta) el.themeColorMeta.content = THEMES[t].accent;
+  function modeColor() {
+    const s = state.settings;
+    if (state.timer.mode === 'short') return normalizeHex(s.shortColor, DEFAULT_COLORS.shortColor);
+    if (state.timer.mode === 'long') return normalizeHex(s.longColor, DEFAULT_COLORS.longColor);
+    return normalizeHex(s.focusColor, DEFAULT_COLORS.focusColor);
+  }
+
+  function syncMetaThemeColor() {
+    if (!el.themeColorMeta) return;
+    el.themeColorMeta.dataset.mode = state.timer.mode;
+    el.themeColorMeta.content = modeColor();
+  }
+
+  function applyColors(settings = state.settings) {
+    const root = document.documentElement;
+    const set = (name, color) => {
+      const c = deriveColors(normalizeHex(color, DEFAULT_COLORS[`${name}Color`]));
+      root.style.setProperty(`--${name}-accent`, c.accent);
+      root.style.setProperty(`--${name}-accent-dark`, c.dark);
+      root.style.setProperty(`--${name}-accent-soft`, c.soft);
+      root.style.setProperty(`--${name}-accent-rgb`, c.rgb);
+    };
+    set('focus', settings.focusColor);
+    set('short', settings.shortColor);
+    set('long', settings.longColor);
+    syncMetaThemeColor();
   }
 
   async function exportData() {
@@ -239,13 +317,11 @@
     const src = raw && typeof raw === 'object' && raw.data && typeof raw.data === 'object' ? raw.data : raw;
     if (!src || typeof src !== 'object') throw new Error('Invalid backup file');
     const base = defaults();
-    const mergedSettings = { ...base.settings, ...((src.settings && typeof src.settings === 'object') ? src.settings : {}) };
-    mergedSettings.theme = THEMES[mergedSettings.theme] ? mergedSettings.theme : base.settings.theme;
+    const mergedSettings = mergeSettings(base.settings, src.settings);
     mergedSettings.goal = clamp(parseInt(mergedSettings.goal, 10) || base.settings.goal, 1, 24);
     mergedSettings.focus = clamp(parseInt(mergedSettings.focus, 10) || base.settings.focus, 1, 180);
     mergedSettings.short = clamp(parseInt(mergedSettings.short, 10) || base.settings.short, 1, 60);
     mergedSettings.long = clamp(parseInt(mergedSettings.long, 10) || base.settings.long, 1, 60);
-    mergedSettings.longEvery = clamp(parseInt(mergedSettings.longEvery, 10) || base.settings.longEvery, 2, 12);
     mergedSettings.sound = !!mergedSettings.sound;
     mergedSettings.notify = !!mergedSettings.notify;
 
@@ -294,7 +370,7 @@
     state.sessions = next.sessions;
     state.breaks = next.breaks;
     pendingSessionId = null;
-    applyTheme(state.settings.theme);
+    applyColors(state.settings);
     saveState();
     renderTimer();
     renderProgress();
@@ -340,6 +416,7 @@
           : `${Math.round(planned / 60000)} min ${t.mode === 'focus' ? 'focus' : t.mode === 'short' ? 'break' : 'long break'}`;
     el.card.dataset.mode = t.mode;
     document.body.dataset.mode = t.mode;
+    if (el.themeColorMeta && el.themeColorMeta.dataset.mode !== t.mode) syncMetaThemeColor();
     el.card.classList.toggle('is-overtime', overtime);
 
     const fraction = overtime ? 1 : clamp(1 - elapsed / planned, 0, 1);
@@ -791,7 +868,6 @@
   let settingsReturnFocus = null;
 
   function settingsValues() {
-    const selectedTheme = el.themeOptions.find((b) => b.classList.contains('is-active'))?.dataset.theme;
     return {
       goal: clamp(parseInt(el.dailyGoal.value, 10) || 8, 1, 24),
       focus: clamp(parseInt(el.focusMin.value, 10) || 25, 1, 180),
@@ -800,7 +876,9 @@
       longEvery: clamp(parseInt(el.longEvery.value, 10) || 4, 2, 12),
       sound: !!el.soundToggle.checked,
       notify: !!el.notifyToggle.checked,
-      theme: THEMES[selectedTheme] ? selectedTheme : state.settings.theme
+      focusColor: normalizeHex(el.focusColor.value, state.settings.focusColor || DEFAULT_COLORS.focusColor),
+      shortColor: normalizeHex(el.shortColor.value, state.settings.shortColor || DEFAULT_COLORS.shortColor),
+      longColor: normalizeHex(el.longColor.value, state.settings.longColor || DEFAULT_COLORS.longColor)
     };
   }
 
@@ -808,7 +886,8 @@
     const v = settingsValues();
     const s = state.settings;
     return v.goal !== s.goal || v.focus !== s.focus || v.short !== s.short || v.long !== s.long
-      || v.longEvery !== s.longEvery || v.sound !== s.sound || v.notify !== s.notify || v.theme !== s.theme;
+      || v.longEvery !== s.longEvery || v.sound !== s.sound || v.notify !== s.notify
+      || v.focusColor !== s.focusColor || v.shortColor !== s.shortColor || v.longColor !== s.longColor;
   }
 
   function openSettings() {
@@ -820,11 +899,9 @@
     el.longEvery.value = state.settings.longEvery;
     el.soundToggle.checked = state.settings.sound;
     el.notifyToggle.checked = state.settings.notify;
-    el.themeOptions.forEach((btn) => {
-      const active = btn.dataset.theme === state.settings.theme;
-      btn.classList.toggle('is-active', active);
-      btn.setAttribute('aria-pressed', String(active));
-    });
+    el.focusColor.value = state.settings.focusColor;
+    el.shortColor.value = state.settings.shortColor;
+    el.longColor.value = state.settings.longColor;
     el.settingsModal.hidden = false;
     el.dailyGoal.focus();
   }
@@ -869,13 +946,6 @@
       toast(err && err.message ? err.message : 'Could not import backup');
     }
   });
-  el.themeOptions.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      el.themeOptions.forEach((b) => { b.classList.remove('is-active'); b.setAttribute('aria-pressed', 'false'); });
-      btn.classList.add('is-active');
-      btn.setAttribute('aria-pressed', 'true');
-    });
-  });
   el.settingsForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const v = settingsValues();
@@ -883,7 +953,7 @@
     if (state.settings.notify && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});
     }
-    applyTheme(state.settings.theme);
+    applyColors(state.settings);
     saveState();
     renderTimer();
     renderProgress();
@@ -923,7 +993,7 @@
   /* ---------------- Boot ---------------- */
 
   function boot() {
-    applyTheme(state.settings.theme);
+    applyColors(state.settings);
     const t = state.timer;
     if (t.running && t.accumulatedAt) {
       const gap = Date.now() - t.accumulatedAt;
