@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <!-- Bump ?v= when styles.css or app.js changes: python's http.server has no Cache-Control. -->
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=7" />
 </head>
 <body>
   <div class="app">
@@ -144,6 +144,18 @@
         </div>
 
         <div class="settings-group">
+          <div class="settings-group-title">Notifications</div>
+          <div class="setting-row">
+            <label for="soundToggle">Completion sound</label>
+            <input id="soundToggle" type="checkbox" />
+          </div>
+          <div class="setting-row">
+            <label for="notifyToggle">Desktop notifications</label>
+            <input id="notifyToggle" type="checkbox" />
+          </div>
+        </div>
+
+        <div class="settings-group">
           <div class="settings-group-title">Appearance</div>
           <div class="theme-picker" role="group" aria-label="Color theme">
             <button type="button" class="theme-option is-active" data-theme="red" aria-pressed="true" style="--swatch:#c94b43">
@@ -162,26 +174,20 @@
         </div>
 
         <div class="settings-group">
-          <div class="settings-group-title">Notifications</div>
-          <div class="setting-row">
-            <label for="soundToggle">Completion sound</label>
-            <input id="soundToggle" type="checkbox" />
-          </div>
-          <div class="setting-row">
-            <label for="notifyToggle">Desktop notifications</label>
-            <input id="notifyToggle" type="checkbox" />
-          </div>
-        </div>
-
-        <div class="settings-group">
           <div class="settings-group-title">Data</div>
           <div class="setting-row">
-            <label>Export backup <span>save your sessions and settings as a file</span></label>
-            <button type="button" class="btn btn-ghost btn-small" id="exportBtn">Export</button>
+            <div class="setting-text">
+              <div class="setting-label" id="exportLabel">Export backup</div>
+              <div class="setting-desc" id="exportDesc">Save your sessions and settings as a file</div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-small" id="exportBtn" aria-labelledby="exportLabel" aria-describedby="exportDesc">Export</button>
           </div>
           <div class="setting-row">
-            <label for="importInput">Import backup <span>restore from a previously exported file</span></label>
-            <button type="button" class="btn btn-ghost btn-small" id="importBtn">Import</button>
+            <div class="setting-text">
+              <div class="setting-label" id="importLabel">Import backup</div>
+              <div class="setting-desc" id="importDesc">Restore from a previously exported file</div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-small" id="importBtn" aria-labelledby="importLabel" aria-describedby="importDesc">Import</button>
             <input id="importInput" type="file" accept="application/json,.json" hidden />
           </div>
         </div>
@@ -196,6 +202,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

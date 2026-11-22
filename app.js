@@ -765,7 +765,30 @@
     if (view === 'timer') renderTimer();
   }
 
+  let settingsReturnFocus = null;
+
+  function settingsValues() {
+    const selectedTheme = el.themeOptions.find((b) => b.classList.contains('is-active'))?.dataset.theme;
+    return {
+      goal: clamp(parseInt(el.dailyGoal.value, 10) || 8, 1, 24),
+      focus: clamp(parseInt(el.focusMin.value, 10) || 25, 1, 180),
+      short: clamp(parseInt(el.shortMin.value, 10) || 5, 1, 60),
+      long: clamp(parseInt(el.longMin.value, 10) || 15, 1, 60),
+      sound: !!el.soundToggle.checked,
+      notify: !!el.notifyToggle.checked,
+      theme: THEMES[selectedTheme] ? selectedTheme : state.settings.theme
+    };
+  }
+
+  function isSettingsDirty() {
+    const v = settingsValues();
+    const s = state.settings;
+    return v.goal !== s.goal || v.focus !== s.focus || v.short !== s.short || v.long !== s.long
+      || v.sound !== s.sound || v.notify !== s.notify || v.theme !== s.theme;
+  }
+
   function openSettings() {
+    settingsReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : el.settingsBtn;
     el.dailyGoal.value = state.settings.goal;
     el.focusMin.value = state.settings.focus;
     el.shortMin.value = state.settings.short;
@@ -779,6 +802,17 @@
     });
     el.settingsModal.hidden = false;
     el.dailyGoal.focus();
+  }
+
+  function closeSettings(force = false) {
+    if (el.settingsModal.hidden) return;
+    if (!force && isSettingsDirty()) {
+      if (!confirm('Discard unsaved changes?')) return;
+    }
+    el.settingsModal.hidden = true;
+    const target = settingsReturnFocus && document.contains(settingsReturnFocus) ? settingsReturnFocus : el.settingsBtn;
+    settingsReturnFocus = null;
+    target.focus();
   }
 
   el.startBtn.addEventListener('click', () => {
@@ -796,7 +830,7 @@
   el.navTabs.forEach((tab) => tab.addEventListener('click', () => switchView(tab.dataset.view)));
 
   el.settingsBtn.addEventListener('click', openSettings);
-  el.closeSettingsBtn.addEventListener('click', () => { el.settingsModal.hidden = true; });
+  el.closeSettingsBtn.addEventListener('click', () => closeSettings());
   el.exportBtn.addEventListener('click', exportData);
   el.importBtn.addEventListener('click', () => el.importInput.click());
   el.importInput.addEventListener('change', async () => {
@@ -819,31 +853,38 @@
   });
   el.settingsForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const selectedTheme = el.themeOptions.find((b) => b.classList.contains('is-active'))?.dataset.theme;
-    state.settings.goal = clamp(parseInt(el.dailyGoal.value, 10) || 8, 1, 24);
-    state.settings.focus = clamp(parseInt(el.focusMin.value, 10) || 25, 1, 180);
-    state.settings.short = clamp(parseInt(el.shortMin.value, 10) || 5, 1, 60);
-    state.settings.long = clamp(parseInt(el.longMin.value, 10) || 15, 1, 60);
-    state.settings.sound = el.soundToggle.checked;
-    state.settings.notify = el.notifyToggle.checked;
-    state.settings.theme = THEMES[selectedTheme] ? selectedTheme : state.settings.theme;
+    const v = settingsValues();
+    Object.assign(state.settings, v);
     if (state.settings.notify && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});
     }
     applyTheme(state.settings.theme);
-    el.settingsModal.hidden = true;
     saveState();
     renderTimer();
     renderProgress();
     if (currentView === 'stats') renderStats();
+    closeSettings(true);
     toast('Settings saved');
   });
 
   el.settingsModal.addEventListener('mousedown', (e) => {
-    if (e.target === el.settingsModal) el.settingsModal.hidden = true;
+    if (e.target === el.settingsModal) closeSettings();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !el.settingsModal.hidden) el.settingsModal.hidden = true;
+    if (e.key === 'Tab' && !el.settingsModal.hidden) {
+      const focusable = Array.from(el.settingsModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+        .filter((node) => !node.hidden && !node.disabled);
+      if (!focusable.length) { e.preventDefault(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    if (e.key === 'Escape' && !el.settingsModal.hidden) {
+      e.preventDefault();
+      closeSettings();
+      return;
+    }
     const tag = (e.target.tagName || '').toLowerCase();
     const typing = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
     if (e.code === 'Space' && currentView === 'timer' && !typing && !e.target.closest('button')) {
