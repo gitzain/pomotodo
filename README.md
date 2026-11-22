@@ -1,51 +1,30 @@
-# template-readme
-A simple README.md template for your github projects.
+# PomoTodo
 
-## Table of Contents
-- [Motivation](#bulb-motivation)
-- [Screenshots](#computer-screenshots)
-- [Installation & Usage](#rocket-installation--usage)
-  - [Installation](#installation)
-  - [Usage](#usage)
-- [Contributing](#handshake-contributing)
-- [History](#scroll-history)
-- [Credits](#clap-credits)
-- [License](#receipt-license)
+A local-first Pomodoro timer with session logging and productivity stats, inspired by [pomotodo.com](https://pomotodo.com/).
 
-## :bulb: Motivation
-TODO: Describe why this project exists
+## Run it
 
-## :computer: Screenshots
-TODO: Screenshots of the app
+No build step or dependencies. Open `index.html` in a browser, or serve the folder locally:
 
-## :rocket: Installation & Usage
+```bash
+python3 -m http.server 3000
+# then visit http://localhost:3000
+```
 
-### Installation
-TODO: Describe the installation process as below and delete this line
-1. Step 1 details here
-2. Step 2 details here
-3. Step 3 details here
+All data lives in your browser's `localStorage` and stays on your machine.
 
-### Usage
-TODO: Write usage instructions as below and delete this line
+## The three parts
 
-## :handshake: Contributing
-1. Fork it!
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Commit your changes: `git commit -m 'Added some feature'`
-4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request :D
+**Timer** — the default view. 25 min focus, 5 min short break, 15 min long break after every 4 pomodoros. When focus time is up, the timer switches to an overtime counter; it does not force you to stop. Press **Finish & log** when you're actually done. Controls are contextual: an idle timer shows only Start, active timers add Reset and Skip, and overtime replaces Skip with Finish & log. `Space` starts/pauses when you aren't typing.
 
-## :scroll: History
-TODO: Write history as below and delete this line  
-22/05/19: v1 published to github.  
-08/06/22: v2 updated an error in the 'Contributing' section and added examples of project 'History'.
-25/10/25: v3 enhanced the README.md documentation with emojis and corrected several typos.
+**Sessions** — when you finish a focus session, a one-line prompt asks what you worked on. Each record stores the label plus the real start time, end time, planned minutes, and actual minutes (including overtime). The Sessions tab lists them grouped by day; labels can be edited and sessions deleted.
 
-## :clap: Credits
-TODO: Write credits as below and delete this line
-- Name of person
-- Template for this README is <a href="https://github.com/gitzain/template-README">template-readme</a> created by <a href="https://iamzain.com">Zain Khan</a>
+**Stats** — derived entirely from logged sessions: today's pomodoros vs goal, focus time, day streak, a 12-week consistency heatmap, a 7-day bar chart, best focus window, on-time rate, break adherence, and personal bests.
 
-## :receipt: License
-See the LICENSE file in this project's directory.
+Today's progress appears as a slim strip above the timer: filled dots are completed pomodoros, the ringed dot is the current one, and a slightly wider gap after every fourth marks the long break. The next break is shown in plain text, with a `+N` badge if you exceed your goal. Use the settings icon (top right) to change the daily goal, timer durations, sound, and notifications.
+
+## Files
+
+- `index.html` — structure and the three views
+- `styles.css` — red theme and responsive layout
+- `app.js` — timer, session records, stats, and persistence

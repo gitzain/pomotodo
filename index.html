@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#c94b43" />
+  <title>PomoTodo — Focus &amp; Get Things Done</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <!-- Bump ?v= when styles.css or app.js changes: python's http.server has no Cache-Control. -->
+  <link rel="stylesheet" href="styles.css?v=2" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3" opacity=".25"/><path d="M16 3a13 13 0 0 1 13 13h-13z" fill="currentColor"/></svg>
+        </span>
+        <span class="brand-name">PomoTodo</span>
+        <span class="brand-tagline">Focus. Finish. Repeat.</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="saved-indicator" id="savedIndicator" aria-live="polite"></span>
+        <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.07a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.07A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.07A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.07a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.07A1.7 1.7 0 0 0 19.4 15z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <nav class="app-nav" role="tablist" aria-label="Sections">
+      <button class="nav-tab is-active" data-view="timer" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Timer
+      </button>
+      <button class="nav-tab" data-view="log" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        Sessions
+      </button>
+      <button class="nav-tab" data-view="stats" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        Stats
+      </button>
+    </nav>
+
+    <main>
+      <!-- TIMER VIEW -->
+      <section class="view is-active" id="view-timer" role="tabpanel" aria-label="Timer">
+        <div class="card timer-card" id="timerCard" aria-label="Pomodoro timer">
+          <div class="progress-strip" aria-label="Today's progress">
+            <div class="progress-line">
+              <span class="progress-label">Today</span>
+              <span class="progress-count"><strong id="doneCount">0</strong> / <span id="goalCount">8</span> pomodoros</span>
+              <span class="progress-extra" id="extraCount" hidden></span>
+            </div>
+            <div class="progress-track-row">
+              <div class="progress-track" id="timeline"></div>
+              <div class="next-break" id="phaseLabel"></div>
+            </div>
+          </div>
+
+          <div class="timer-body">
+            <div class="timer-ring">
+              <svg viewBox="0 0 260 260" aria-hidden="true">
+                <circle class="ring-track" cx="130" cy="130" r="116" />
+                <circle class="ring-progress" id="ringProgress" cx="130" cy="130" r="116" />
+              </svg>
+              <div class="timer-readout">
+                <div class="time" id="timeDisplay">25:00</div>
+                <div class="mode-name" id="modeName">Time to focus</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="timer-controls" id="timerControls">
+            <button class="btn btn-ghost" id="resetBtn">Reset</button>
+            <button class="btn btn-primary" id="startBtn">
+              <span id="startIcon" aria-hidden="true">▶</span> <span id="startLabel">Start focus</span>
+            </button>
+            <button class="btn btn-ghost" id="skipBtn">Skip</button>
+          </div>
+
+          <div class="capture-card" id="captureCard" hidden>
+            <div class="capture-icon" aria-hidden="true">✍️</div>
+            <h3>Pomodoro complete</h3>
+            <p class="capture-meta" id="captureMeta"></p>
+            <form id="captureForm" autocomplete="off">
+              <input id="captureInput" type="text" maxlength="120" placeholder="What did you work on?" aria-label="What did you work on?" />
+              <div class="capture-actions">
+                <button type="button" class="btn btn-ghost" id="skipLogBtn">Skip log</button>
+                <button type="submit" class="btn btn-primary">Save session</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- SESSION LOG VIEW -->
+      <section class="view" id="view-log" role="tabpanel" aria-label="Session log" hidden>
+        <div class="card content-card">
+          <div class="card-header">
+            <div>
+              <h2>Session log</h2>
+              <p class="card-subtitle">Every pomodoro, with start, finish and actual time spent.</p>
+            </div>
+            <span class="badge" id="logCount">0 sessions</span>
+          </div>
+          <div id="logList" class="log-list"></div>
+        </div>
+      </section>
+
+      <!-- STATS VIEW -->
+      <section class="view" id="view-stats" role="tabpanel" aria-label="Stats" hidden>
+        <div class="stats-wrap" id="statsContent"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Settings dialog -->
+  <div class="modal-backdrop" id="settingsModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <h2 id="settingsTitle">Settings</h2>
+      <p class="modal-subtitle">Make the timer work for you.</p>
+      <form id="settingsForm">
+        <div class="setting-row">
+          <label for="dailyGoal">Daily pomodoro goal <span>resets at midnight</span></label>
+          <input id="dailyGoal" type="number" min="1" max="24" required />
+        </div>
+        <div class="setting-row">
+          <label for="focusMin">Focus length <span>minutes</span></label>
+          <input id="focusMin" type="number" min="1" max="180" required />
+        </div>
+        <div class="setting-row">
+          <label for="shortMin">Short break <span>minutes</span></label>
+          <input id="shortMin" type="number" min="1" max="60" required />
+        </div>
+        <div class="setting-row">
+          <label for="longMin">Long break <span>minutes</span></label>
+          <input id="longMin" type="number" min="1" max="60" required />
+        </div>
+        <div class="setting-row">
+          <label for="soundToggle">Completion sound</label>
+          <input id="soundToggle" type="checkbox" />
+        </div>
+        <div class="setting-row">
+          <label for="notifyToggle">Desktop notifications</label>
+          <input id="notifyToggle" type="checkbox" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="closeSettingsBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="app.js?v=2"></script>
+</body>
+</html>
