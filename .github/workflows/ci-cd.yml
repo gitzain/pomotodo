@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,8 +31,8 @@ jobs:
         run: npm test
 
   deploy:
-    name: Deploy to Pages
-    needs: test
+    name: Deploy to Production
+    needs: unit-tests
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     environment:
