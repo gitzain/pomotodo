@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <!-- Bump ?v= when styles.css or app.js changes: python's http.server has no Cache-Control. -->
-  <link rel="stylesheet" href="styles.css?v=14" />
+  <link rel="stylesheet" href="styles.css?v=16" />
 </head>
 <body>
   <div class="app">
@@ -157,6 +157,10 @@
             <label for="longEvery">Long break after <span>pomodoros</span></label>
             <input id="longEvery" type="number" min="2" max="12" required />
           </div>
+          <div class="setting-row">
+            <label for="autoStartBreak">Start breaks automatically <span>after a session is logged</span></label>
+            <input id="autoStartBreak" type="checkbox" />
+          </div>
         </div>
 
         <div class="settings-group">
@@ -180,7 +184,7 @@
           </div>
           <div class="setting-row">
             <label for="shortColor">Short break color</label>
-            <input id="shortColor" type="color" value="#6aa9c4" />
+            <input id="shortColor" type="color" value="#5f9465" />
           </div>
           <div class="setting-row">
             <label for="longColor">Long break color</label>
@@ -217,7 +221,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="core.js?v=15"></script>
-  <script src="app.js?v=15"></script>
+  <script src="core.js?v=16"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

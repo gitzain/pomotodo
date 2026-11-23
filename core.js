@@ -7,7 +7,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const DEFAULT_COLORS = { focusColor: '#c94b43', shortColor: '#6aa9c4', longColor: '#9a86c4' };
+  const DEFAULT_COLORS = { focusColor: '#c94b43', shortColor: '#5f9465', longColor: '#9a86c4' };
   const LEGACY_THEMES = {
     red: { ...DEFAULT_COLORS },
     green: { ...DEFAULT_COLORS, focusColor: '#5f9465' },
@@ -86,7 +86,7 @@
 
   function defaults() {
     return {
-      settings: { focus: 25, short: 5, long: 15, longEvery: 4, goal: 8, sound: true, notify: false, ...DEFAULT_COLORS },
+      settings: { focus: 25, short: 5, long: 15, longEvery: 4, goal: 8, sound: true, notify: false, autoStartBreak: true, ...DEFAULT_COLORS },
       timer: freshTimer(),
       sessions: [],
       breaks: []
@@ -98,6 +98,9 @@
     const legacy = LEGACY_THEMES[raw.theme];
     const merged = { ...baseSettings, ...(legacy || {}), ...raw };
     merged.longEvery = clamp(parseInt(merged.longEvery, 10) || baseSettings.longEvery, 2, 12);
+    merged.autoStartBreak = typeof merged.autoStartBreak === 'boolean'
+      ? merged.autoStartBreak
+      : baseSettings.autoStartBreak;
     merged.focusColor = normalizeHex(merged.focusColor, baseSettings.focusColor);
     merged.shortColor = normalizeHex(merged.shortColor, baseSettings.shortColor);
     merged.longColor = normalizeHex(merged.longColor, baseSettings.longColor);

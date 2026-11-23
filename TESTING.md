@@ -21,6 +21,7 @@ node --test
 - default settings and per-mode colors
 - legacy theme migration and validation of imported settings
 - `longEvery` clamping and long-break scheduling
+- the auto-start-break preference and its default
 - color derivation and hex validation
 - backup import validation and sanitizing
 - elapsed-time calculation

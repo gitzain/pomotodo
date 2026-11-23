@@ -10,8 +10,9 @@ test('defaults provide the expected settings and colors', () => {
   assert.equal(d.settings.longEvery, 4);
   assert.equal(d.settings.goal, 8);
   assert.equal(d.settings.focusColor, '#c94b43');
-  assert.equal(d.settings.shortColor, '#6aa9c4');
+  assert.equal(d.settings.shortColor, '#5f9465');
   assert.equal(d.settings.longColor, '#9a86c4');
+  assert.equal(d.settings.autoStartBreak, true);
   assert.deepEqual(d.timer, core.freshTimer());
   assert.deepEqual(d.sessions, []);
   assert.deepEqual(d.breaks, []);
@@ -32,7 +33,7 @@ test('mergeSettings migrates legacy themes to per-mode colors', () => {
   assert.equal(core.mergeSettings(base, { theme: 'blue' }).focusColor, '#4f84b7');
   const red = core.mergeSettings(base, { theme: 'red' });
   assert.equal(red.focusColor, '#c94b43');
-  assert.equal(red.shortColor, '#6aa9c4');
+  assert.equal(red.shortColor, '#5f9465');
   assert.equal(red.longColor, '#9a86c4');
 });
 
@@ -48,6 +49,13 @@ test('mergeSettings clamps longEvery to 2-12', () => {
   assert.equal(core.mergeSettings(base, { longEvery: 99 }).longEvery, 12);
   assert.equal(core.mergeSettings(base, { longEvery: 'nope' }).longEvery, 4);
   assert.equal(core.mergeSettings(base, { longEvery: '7' }).longEvery, 7);
+});
+
+test('mergeSettings preserves the auto-start break setting', () => {
+  const base = core.defaults().settings;
+  assert.equal(core.mergeSettings(base, {}).autoStartBreak, true);
+  assert.equal(core.mergeSettings(base, { autoStartBreak: false }).autoStartBreak, false);
+  assert.equal(core.mergeSettings(base, { autoStartBreak: 'yes' }).autoStartBreak, true);
 });
 
 test('normalizeHex accepts six-digit hex and rejects anything else', () => {

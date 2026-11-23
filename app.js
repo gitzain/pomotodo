@@ -52,6 +52,7 @@
     longEvery: $('longEvery'),
     soundToggle: $('soundToggle'),
     notifyToggle: $('notifyToggle'),
+    autoStartBreak: $('autoStartBreak'),
     focusColor: $('focusColor'),
     shortColor: $('shortColor'),
     longColor: $('longColor'),
@@ -382,6 +383,7 @@
     pendingSessionId = null;
     const count = todayFocus().length;
     setMode(nextBreakType(count));
+    if (state.settings.autoStartBreak) startTimer();
     toast(count >= goal() ? 'Goal reached — take a well-earned break' : `Session saved — ${count} of ${goal()} today`);
   }
 
@@ -736,6 +738,7 @@
       longEvery: clamp(parseInt(el.longEvery.value, 10) || 4, 2, 12),
       sound: !!el.soundToggle.checked,
       notify: !!el.notifyToggle.checked,
+      autoStartBreak: !!el.autoStartBreak.checked,
       focusColor: normalizeHex(el.focusColor.value, state.settings.focusColor || DEFAULT_COLORS.focusColor),
       shortColor: normalizeHex(el.shortColor.value, state.settings.shortColor || DEFAULT_COLORS.shortColor),
       longColor: normalizeHex(el.longColor.value, state.settings.longColor || DEFAULT_COLORS.longColor)
@@ -747,6 +750,7 @@
     const s = state.settings;
     return v.goal !== s.goal || v.focus !== s.focus || v.short !== s.short || v.long !== s.long
       || v.longEvery !== s.longEvery || v.sound !== s.sound || v.notify !== s.notify
+      || v.autoStartBreak !== s.autoStartBreak
       || v.focusColor !== s.focusColor || v.shortColor !== s.shortColor || v.longColor !== s.longColor;
   }
 
@@ -759,6 +763,7 @@
     el.longEvery.value = state.settings.longEvery;
     el.soundToggle.checked = state.settings.sound;
     el.notifyToggle.checked = state.settings.notify;
+    el.autoStartBreak.checked = state.settings.autoStartBreak;
     el.focusColor.value = state.settings.focusColor;
     el.shortColor.value = state.settings.shortColor;
     el.longColor.value = state.settings.longColor;
