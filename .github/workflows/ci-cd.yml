@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '20'
       - name: Check JS syntax
-        run: node --check app.js && node --check core.js
+        run: node --check src/app.js && node --check src/core.js
       - name: Run unit tests
         run: npm test
 
