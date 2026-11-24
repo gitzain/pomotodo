@@ -2,16 +2,16 @@
 import {
   el, ui, state, store, MAX_GAP_MS, applyColors,
   plannedMs, elapsedNow, syncElapsed, toast
-} from './context.js?v=19';
+} from './context.js?v=20';
 import {
   renderTimer, startTimer, pauseTimer, resetTimer, finishFocus,
   completeCapture, finishBreak, skipTimer, tick
-} from './timer.js?v=19';
-import { renderProgress } from './progress.js?v=19';
-import { renderLog } from './log.js?v=19';
-import { renderStats } from './stats.js?v=19';
-import { switchView, openSettings, closeSettings, settingsValues } from './settings.js?v=19';
-import { exportData, importData } from './data.js?v=19';
+} from './timer.js?v=20';
+import { renderProgress } from './progress.js?v=20';
+import { renderLog } from './log.js?v=20';
+import { renderStats } from './stats.js?v=20';
+import { switchView, openSettings, closeSettings, settingsValues } from './settings.js?v=20';
+import { exportData, importData } from './data.js?v=20';
 
 store.subscribe(() => {
   renderTimer();

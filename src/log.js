@@ -1,7 +1,7 @@
 import {
   el, state, store, dayLabel, formatClock, formatDuration,
   escapeHtml, toast
-} from './context.js?v=19';
+} from './context.js?v=20';
 
 export function renderLog() {
   const sessions = [...state.sessions].sort((a, b) => b.endedAt - a.endedAt);

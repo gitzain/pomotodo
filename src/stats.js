@@ -1,7 +1,7 @@
 import {
   el, state, allFocus, todayFocus, sessionsOn,
   localDateKey, goal, clamp, formatDuration
-} from './context.js?v=19';
+} from './context.js?v=20';
 
 export function renderStats() {
   const focus = allFocus();

@@ -4,10 +4,10 @@ import {
   freshTimer, timerReadout, toast,
   plannedMs, elapsedNow, syncElapsed, syncMetaThemeColor,
   nextBreakType, todayFocus, goal
-} from './context.js?v=19';
-import { renderProgress } from './progress.js?v=19';
-import { renderLog } from './log.js?v=19';
-import { renderStats } from './stats.js?v=19';
+} from './context.js?v=20';
+import { renderProgress } from './progress.js?v=20';
+import { renderLog } from './log.js?v=20';
+import { renderStats } from './stats.js?v=20';
 
 export function renderTimer() {
   const t = state.timer;

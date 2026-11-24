@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const core = require('../core.js');
+const core = require('../src/core.js');
 
 test('defaults provide the expected settings and colors', () => {
   const d = core.defaults();

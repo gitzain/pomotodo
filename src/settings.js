@@ -1,9 +1,9 @@
 import {
   el, ui, state, clamp, normalizeHex, DEFAULT_COLORS
-} from './context.js?v=19';
-import { renderTimer } from './timer.js?v=19';
-import { renderLog } from './log.js?v=19';
-import { renderStats } from './stats.js?v=19';
+} from './context.js?v=20';
+import { renderTimer } from './timer.js?v=20';
+import { renderLog } from './log.js?v=20';
+import { renderStats } from './stats.js?v=20';
 
 export function switchView(view) {
   ui.currentView = view;

@@ -35,6 +35,6 @@ npm test
 
 - `index.html` — structure and the three views
 - `styles.css` — theme tokens and responsive layout
-- `core.js` — pure logic shared by the app and tests
-- `store.js` — application state and localStorage persistence
-- `app.js` + `context.js`, `timer.js`, `progress.js`, `log.js`, `stats.js`, `settings.js`, `data.js` — native ES modules for the UI
+- `src/core.js` — pure logic shared by the app and tests
+- `src/store.js` — application state and localStorage persistence
+- `src/app.js` + `context.js`, `timer.js`, `progress.js`, `log.js`, `stats.js`, `settings.js`, `data.js` — native ES modules for the UI

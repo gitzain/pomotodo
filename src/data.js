@@ -1,7 +1,7 @@
 import {
   state, store, ui, syncElapsed, localDateKey, toast,
   normalizeImported, applyColors
-} from './context.js?v=19';
+} from './context.js?v=20';
 
 export async function exportData() {
   syncElapsed();
