@@ -37,4 +37,4 @@ npm test
 - `styles.css` — theme tokens and responsive layout
 - `core.js` — pure logic shared by the app and tests
 - `store.js` — application state and localStorage persistence
-- `app.js` — UI, session records, and stats
+- `app.js` + `context.js`, `timer.js`, `progress.js`, `log.js`, `stats.js`, `settings.js`, `data.js` — native ES modules for the UI

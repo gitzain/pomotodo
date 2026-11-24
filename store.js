@@ -54,25 +54,24 @@
 
   const state = load();
 
+  function notify() { listeners.forEach((fn) => fn(state)); }
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       root.dispatchEvent(new CustomEvent('pomotodo:saved'));
+      notify();
       return true;
     } catch (err) { return false; }
   }
-  function notify() { listeners.forEach((fn) => fn(state)); }
   function update(mutator) {
     const result = mutator(state);
     save();
-    notify();
     return result;
   }
   function updateQuiet(mutator) { return mutator(state); }
   function replaceAll(next) {
     Object.assign(state, next);
     save();
-    notify();
   }
   function subscribe(fn) {
     listeners.add(fn);
