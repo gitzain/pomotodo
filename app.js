@@ -1,8 +1,7 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'pomotodo-v2';
-  const LEGACY_KEY = 'pomotodo-lite-v1';
+  const store = window.PomoStore;
   const RING_CIRCUMFERENCE = 2 * Math.PI * 116;
   const MAX_GAP_MS = 4 * 60 * 60 * 1000;
   const Core = window.PomoCore;
@@ -68,53 +67,7 @@
 
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-  function migrateLegacy() {
-    try {
-      const old = JSON.parse(localStorage.getItem(LEGACY_KEY));
-      if (!old || !Array.isArray(old.records)) return defaults();
-      const base = defaults();
-      return {
-        ...base,
-        settings: mergeSettings(base.settings, old.settings),
-        sessions: old.records.map((r) => {
-          const ended = Number(r.completedAt) || Date.now();
-          const minutes = Math.max(1, Number(r.minutes) || 25);
-          return {
-            id: uid(), label: r.task || 'Untitled session',
-            startedAt: ended - minutes * 60000, endedAt: ended,
-            plannedMinutes: minutes, actualMinutes: minutes, overtimeMinutes: 0,
-            type: 'focus', day: keyFromTs(ended)
-          };
-        })
-      };
-    } catch (err) { return defaults(); }
-  }
-
-  function loadState() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (!raw || typeof raw !== 'object') return migrateLegacy();
-      const base = defaults();
-      const timer = raw.timer && typeof raw.timer === 'object' ? raw.timer : {};
-      const validMode = ['focus', 'short', 'long'].includes(timer.mode) ? timer.mode : 'focus';
-      const merged = mergeSettings(base.settings, raw.settings);
-      return {
-        settings: merged,
-        timer: {
-          mode: validMode,
-          running: !!timer.running,
-          elapsedMs: Math.max(0, Number(timer.elapsedMs) || 0),
-          accumulatedAt: Number(timer.accumulatedAt) || null,
-          startedAt: Number(timer.startedAt) || null,
-          milestoneNotified: !!timer.milestoneNotified
-        },
-        sessions: Array.isArray(raw.sessions) ? raw.sessions : [],
-        breaks: Array.isArray(raw.breaks) ? raw.breaks : []
-      };
-    } catch (err) { return defaults(); }
-  }
-
-  const state = loadState();
+  const state = store.state;
   let currentView = 'timer';
   let pendingSessionId = null;
   let currentDay = localDateKey();
@@ -123,15 +76,12 @@
   let savedTimeout = null;
   let audioCtx = null;
 
-  function saveState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      el.savedIndicator.textContent = '✓ Saved';
-      el.savedIndicator.classList.add('show');
-      clearTimeout(savedTimeout);
-      savedTimeout = setTimeout(() => el.savedIndicator.classList.remove('show'), 1200);
-    } catch (err) { /* Storage can be unavailable; app still works in memory. */ }
-  }
+  window.addEventListener('pomotodo:saved', () => {
+    el.savedIndicator.textContent = '✓ Saved';
+    el.savedIndicator.classList.add('show');
+    clearTimeout(savedTimeout);
+    savedTimeout = setTimeout(() => el.savedIndicator.classList.remove('show'), 1200);
+  });
 
   /* ---------------- Helpers ---------------- */
 
@@ -231,13 +181,9 @@
     let parsed;
     try { parsed = JSON.parse(text); } catch { throw new Error('That file is not valid JSON'); }
     const next = normalizeImported(parsed);
-    state.settings = next.settings;
-    state.timer = next.timer;
-    state.sessions = next.sessions;
-    state.breaks = next.breaks;
+    store.replaceAll(next);
     pendingSessionId = null;
     applyColors(state.settings);
-    saveState();
     renderTimer();
     renderProgress();
     renderLog();
@@ -322,7 +268,7 @@
     if (!t.milestoneNotified && elapsedNow() >= plannedMs()) t.milestoneNotified = true;
     t.running = true;
     t.accumulatedAt = Date.now();
-    saveState();
+    store.save();
     renderTimer();
   }
 
@@ -332,13 +278,13 @@
     syncElapsed();
     t.running = false;
     t.accumulatedAt = null;
-    saveState();
+    store.save();
     renderTimer();
   }
 
   function setMode(mode) {
     state.timer = freshTimer(mode);
-    saveState();
+    store.save();
     renderTimer();
     renderProgress();
   }
@@ -371,7 +317,7 @@
     el.captureMeta.textContent = `${plannedMinutes}m planned · ${actualMinutes}m actual${overtimeMinutes ? ` · +${overtimeMinutes}m overtime` : ''} · ended ${formatClock(endedAt)}`;
     el.captureInput.value = '';
     state.timer = freshTimer('focus');
-    saveState();
+    store.save();
     renderTimer();
     renderProgress();
     el.captureInput.focus();
@@ -440,7 +386,7 @@
       }
       if (Date.now() - lastSaveTick > 5000) {
         syncElapsed();
-        saveState();
+        store.save();
         lastSaveTick = Date.now();
       }
     }
@@ -567,7 +513,7 @@
       row.querySelector('.edit-btn').addEventListener('click', () => startLogEdit(session, labelEl));
       row.querySelector('.delete-btn').addEventListener('click', () => {
         state.sessions = state.sessions.filter((s) => s.id !== session.id);
-        saveState();
+        store.save();
         renderLog();
         renderProgress();
         if (currentView === 'stats') renderStats();
@@ -591,7 +537,7 @@
       if (done) return;
       done = true;
       if (commit && input.value.trim()) session.label = input.value.trim();
-      saveState();
+      store.save();
       renderLog();
       if (currentView === 'stats') renderStats();
     };
@@ -819,7 +765,7 @@
       Notification.requestPermission().catch(() => {});
     }
     applyColors(state.settings);
-    saveState();
+    store.save();
     renderTimer();
     renderProgress();
     if (currentView === 'stats') renderStats();

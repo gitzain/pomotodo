@@ -36,4 +36,5 @@ npm test
 - `index.html` — structure and the three views
 - `styles.css` — theme tokens and responsive layout
 - `core.js` — pure logic shared by the app and tests
-- `app.js` — UI, session records, stats, and persistence
+- `store.js` — application state and localStorage persistence
+- `app.js` — UI, session records, and stats
